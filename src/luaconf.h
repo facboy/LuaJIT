@@ -37,12 +37,18 @@
 #define LUA_LROOT	"/usr/local"
 #define LUA_LUADIR	"/lua/5.1/"
 
+#ifdef __CYGWIN__
+#define _LUA_LIBEXT ".dll"
+#else
+#define _LUA_LIBEXT ".so"
+#endif
+
 #ifdef LUA_ROOT
 #define LUA_JROOT	LUA_ROOT
 #define LUA_RLDIR	LUA_ROOT "/share" LUA_LUADIR
 #define LUA_RCDIR	LUA_ROOT "/" LUA_MULTILIB LUA_LUADIR
 #define LUA_RLPATH	";" LUA_RLDIR "?.lua;" LUA_RLDIR "?/init.lua"
-#define LUA_RCPATH	";" LUA_RCDIR "?.so"
+#define LUA_RCPATH	";" LUA_RCDIR "?" _LUA_LIBEXT
 #else
 #define LUA_JROOT	LUA_LROOT
 #define LUA_RLPATH
@@ -57,11 +63,11 @@
 #define LUA_LLDIR	LUA_LROOT "/share" LUA_LUADIR
 #define LUA_LCDIR	LUA_LROOT "/" LUA_LMULTILIB LUA_LUADIR
 #define LUA_LLPATH	";" LUA_LLDIR "?.lua;" LUA_LLDIR "?/init.lua"
-#define LUA_LCPATH1	";" LUA_LCDIR "?.so"
-#define LUA_LCPATH2	";" LUA_LCDIR "loadall.so"
+#define LUA_LCPATH1	";" LUA_LCDIR "?" _LUA_LIBEXT
+#define LUA_LCPATH2	";" LUA_LCDIR "loadall" _LUA_LIBEXT
 
 #define LUA_PATH_DEFAULT	"./?.lua" LUA_JPATH LUA_LLPATH LUA_RLPATH
-#define LUA_CPATH_DEFAULT	"./?.so" LUA_LCPATH1 LUA_RCPATH LUA_LCPATH2
+#define LUA_CPATH_DEFAULT	"./?" _LUA_LIBEXT LUA_LCPATH1 LUA_RCPATH LUA_LCPATH2
 #endif
 
 /* Environment variable names for path overrides and initialization code. */

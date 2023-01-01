@@ -69,6 +69,7 @@ INSTALL_SHORT2= $(INSTALL_LIB)/$(INSTALL_SOSHORT2)
 INSTALL_T= $(INSTALL_BIN)/$(INSTALL_TNAME)
 INSTALL_TSYM= $(INSTALL_BIN)/$(INSTALL_TSYMNAME)
 INSTALL_PC= $(INSTALL_PKGCONFIG)/$(INSTALL_PCNAME)
+INSTALL_DLL=
 
 INSTALL_DIRS= $(INSTALL_BIN) $(INSTALL_LIB) $(INSTALL_INC) $(INSTALL_MAN) \
   $(INSTALL_PKGCONFIG) $(INSTALL_JITLIB) $(INSTALL_LMOD) $(INSTALL_CMOD)
@@ -103,8 +104,11 @@ FILES_JITLIB= bc.lua bcsave.lua dump.lua p.lua v.lua zone.lua \
 	      dis_mips64r6.lua dis_mips64r6el.lua \
 	      vmdef.lua
 
+UNAME:= $(shell uname -s)
 ifeq (,$(findstring Windows,$(OS)))
-  HOST_SYS:= $(shell uname -s)
+  HOST_SYS= UNAME
+else ifeq (MSYS_NT,$(findstring MSYS_NT,$(UNAME)))
+  HOST_SYS= MSYS
 else
   HOST_SYS= Windows
 endif
@@ -116,6 +120,17 @@ ifeq (Darwin,$(TARGET_SYS))
   INSTALL_SOSHORT2= $(INSTALL_DYLIBSHORT2)
   LDCONFIG= :
   SED_PC+= -e "s| -Wl,-E||"
+else ifeq (MSYS,$(TARGET_SYS))
+  FILE_A= libluajit-$(ABIVER).dll.a
+  INSTALL_ANAME= libluajit-$(ABIVER).dll.a
+  INSTALL_STATIC= $(INSTALL_LIB)/$(INSTALL_ANAME)
+
+  DLL_VER= $(subst .,,$(ABIVER))
+  FILE_DLL= lua$(DLL_VER).dll
+  INSTALL_DLLNAME= $(FILE_DLL)
+  INSTALL_DLL= $(INSTALL_BIN)/$(INSTALL_DLLNAME)
+  INSTALL_TSYMNAME= luajit.exe
+  INSTALL_TSYM= $(INSTALL_BIN)/$(INSTALL_TSYMNAME)
 endif
 
 ##############################################################################
@@ -138,6 +153,9 @@ install: $(INSTALL_DEP)
 	  ( $(LDCONFIG) $(INSTALL_LIB) || : ) && \
 	  $(SYMLINK) $(INSTALL_SONAME) $(INSTALL_SHORT1) && \
 	  $(SYMLINK) $(INSTALL_SONAME) $(INSTALL_SHORT2) || :
+	test -n $(INSTALL_DLL) && \
+	  cd src && test -f $(FILE_DLL) && \
+	  $(INSTALL_F) $(FILE_DLL) $(INSTALL_DLL) || :
 	cd etc && $(INSTALL_F) $(FILE_MAN) $(INSTALL_MAN)
 	cd etc && $(SED_PC) $(FILE_PC) > $(FILE_PC).tmp && \
 	  $(INSTALL_F) $(FILE_PC).tmp $(INSTALL_PC) && \
@@ -149,7 +167,7 @@ install: $(INSTALL_DEP)
 
 uninstall:
 	@echo "==== Uninstalling LuaJIT $(VERSION) from $(PREFIX) ===="
-	$(UNINSTALL) $(INSTALL_TSYM) $(INSTALL_T) $(INSTALL_STATIC) $(INSTALL_DYN) $(INSTALL_SHORT1) $(INSTALL_SHORT2) $(INSTALL_MAN)/$(FILE_MAN) $(INSTALL_PC)
+	$(UNINSTALL) $(INSTALL_TSYM) $(INSTALL_T) $(INSTALL_STATIC) $(INSTALL_DYN) $(INSTALL_SHORT1) $(INSTALL_SHORT2) $(INSTALL_MAN)/$(FILE_MAN) $(INSTALL_PC) $(INSTALL_DLL)
 	for file in $(FILES_JITLIB); do \
 	  $(UNINSTALL) $(INSTALL_JITLIB)/$$file; \
 	  done
