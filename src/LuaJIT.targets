@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- adapted from the WebView2 one -->
+
+  <PropertyGroup>
+    <Lua51ProjectKind>native</Lua51ProjectKind>
+    <Lua51LoaderPreference>Dynamic</Lua51LoaderPreference>
+  </PropertyGroup>
+  
+  <!-- The Platform property is Win32 or x64 for C++ projects. Convert from Win32 to x86 to match our directory structure.
+    If PlatformTarget property is set, then use that to determine EffectivePlatform for .NET projects.
+    See conditions: https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild-conditions?view=vs-2019
+    and PropertyGroup: https://docs.microsoft.com/en-us/visualstudio/msbuild/propertygroup-element-msbuild?view=vs-2019
+  -->
+  <PropertyGroup>
+    <EffectivePlatform>$(Platform)</EffectivePlatform>
+    <EffectivePlatform Condition="'$(Platform)' == 'Win32'">x86</EffectivePlatform>
+    <EffectivePlatform Condition="'$(Platform)' == 'Any CPU'">x86</EffectivePlatform>
+    <EffectivePlatform Condition="'$(Platform)' == 'AnyCPU'">x86</EffectivePlatform>
+    <EffectivePlatform Condition="'$(NETCoreSdkRuntimeIdentifier)' == 'win-x86'">x86</EffectivePlatform>
+    <EffectivePlatform Condition="'$(NETCoreSdkRuntimeIdentifier)' == 'win-x64'">x64</EffectivePlatform>
+    <EffectivePlatform Condition="'$(PlatformTarget)' == 'x64'">x64</EffectivePlatform>
+    <EffectivePlatform Condition="'$(PlatformTarget)' == 'x86'">x86</EffectivePlatform>
+  </PropertyGroup>
+  
+  <ItemDefinitionGroup>
+    <ClCompile>
+  <!-- MSBuildThisFileDirectory is the path containing this targets file.
+    See well-known properties: https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild-reserved-and-well-known-properties?view=vs-2019
+  -->
+      <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  
+  <!-- Update link path to include appropriate arch directory and link against our lib.
+    See Link task: https://docs.microsoft.com/en-us/visualstudio/msbuild/link-task?view=vs-2019
+  -->
+  <ItemDefinitionGroup>
+    <Link Condition="'$(EffectivePlatform)' != 'ARM'">
+      <AdditionalDependencies>lua51.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(MSBuildThisFileDirectory)\$(EffectivePlatform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  
+  <!-- Copy DLL to the output path.
+    Only Copy DLL to the output path when project is C++ and Lua51LoaderPreference is set to Dynamic.
+    .NET will pick DLL at runtime from runtime folder or processor bit folder base on Core or Framework.
+    See Content: https://docs.microsoft.com/en-us/visualstudio/msbuild/common-msbuild-project-items?view=vs-2019
+    See Architecture-specific folders for .NET:
+    https://docs.microsoft.com/en-us/nuget/create-packages/supporting-multiple-target-frameworks#architecture-specific-folders
+  -->
+  <ItemGroup Condition="'$(Lua51LoaderPreference)' == 'Dynamic' And '$(Lua51ProjectKind)' == 'native' And '$(EffectivePlatform)' != 'ARM'">
+    <Content Include="$(MSBuildThisFileDirectory)\$(EffectivePlatform)\lua51.dll">
+      <Link>%(Filename)%(Extension)</Link>
+      <PublishState>Included</PublishState>
+      <Visible>False</Visible>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <Pack>false</Pack>
+    </Content>
+  </ItemGroup>
+  
+    <!-- Cleanup our copied files when cleaning.
+    See Delete: https://docs.microsoft.com/en-us/visualstudio/msbuild/delete-task?view=vs-2019
+    See AfterTargets: https://docs.microsoft.com/en-us/visualstudio/msbuild/target-build-order?view=vs-2019
+  -->
+  <Target Name="CleanDownloadContentFiles" AfterTargets="Clean">
+    <Delete Files="$(OutputPath)\lua51.dll"/>
+  </Target>
+</Project>
