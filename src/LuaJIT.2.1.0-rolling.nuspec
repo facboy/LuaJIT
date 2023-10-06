@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
+  <metadata>
+    <id>LuaJIT</id>
+    <version>2.1.0-rolling</version>
+    <title></title>
+    <authors>Mike Pall</authors>
+    <owners></owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>LuaJIT</description>
+  </metadata>
+  <files>
+    <file src="lauxlib.h" target="build\native\include\lauxlib.h" />
+    <file src="lua.h" target="build\native\include\lua.h" />
+    <file src="luaconf.h" target="build\native\include\luaconf.h" />
+    <file src="lualib.h" target="build\native\include\lualib.h" />
+    <file src="lua51.dll" target="build\native\x64\lua51.dll" />
+    <file src="lua51.lib" target="build\native\x64\lua51.lib" />
+    <file src="LuaJIT.targets" target="build\native\LuaJIT.targets" />
+    <file src="lua51.dll" target="runtimes\win10-x64\native\lua51.dll" />
+  </files>
+</package>
